@@ -11,10 +11,25 @@
 import argparse
 import socket
 import json
-import mercury.mercury206 as mercury206
+import configparser
 import mercury.mercury236 as mercury236
 
+def read_config(config_file='config.ini'):
+    config = configparser.ConfigParser()
+    config.read(config_file)
 
+    args = {
+        'proto': config.get('Settings', 'proto', fallback='m206'),
+        'serial': config.getint('Settings', 'serial', fallback=0),
+        'host': config.get('Settings', 'host', fallback='0'),
+        'port': config.getint('Settings', 'port', fallback=50),
+        'user': config.get('Settings', 'user', fallback='user'),
+        'passwd': config.get('Settings', 'passwd', fallback=''),
+        'format': config.get('Settings', 'format', fallback='json'),
+        # Удалите строку 'array_number', если она уже обрабатывается в другом месте
+    }
+    return args
+    
 def parse_cmd_line_args():
     parser = argparse.ArgumentParser(description="Mercury energy meter data receiver",
                                      formatter_class=argparse.RawTextHelpFormatter)
