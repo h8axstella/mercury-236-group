@@ -6,7 +6,7 @@
 # receive data from electricity meter MERCURY
 #
 # 2019 <eugene@skorlov.name>
-#
+# 2024 s.drozdov@hoststella.com
 
 import argparse
 import socket
