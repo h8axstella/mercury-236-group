@@ -65,6 +65,18 @@ def read_energy(s, address_mercury, cmd=0x05, param=0x00, tarif=0x00):
 
     return result
 
+def read_energy_beginning_of_month(s, address_mercury):
+    ''' 
+    Чтение активной и реактивной энергии на начало месяца.
+    '''
+    cmd = 0x05  # Код команды для чтения активной и реактивной энергии
+    param = 0x0B  # Параметр для выбора данных на начало месяца
+
+    # В вызове функции read_energy используется зафиксированный param для чтения данных на начало месяца
+    # и tarif=0x00, что указывает на сумму по всем тарифам
+    result = read_energy(s, address_mercury, cmd, param, tarif=0x00)
+
+    return result
 
 def read_energy_sum_act_react(s, address_mercury, cmd=0x05, param=0x00, tarif=0x0):
     result = read_energy(s, address_mercury, cmd=cmd, param=param, tarif=tarif)
