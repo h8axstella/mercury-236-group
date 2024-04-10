@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import configparser
 import socket
 import json
@@ -10,7 +11,7 @@ def read_config(config_file='config.ini'):
     return config
 
 def save_results_to_file(data, results_dir, file_name='results.json'):
-    os.makedirs(results_dir, exist_ok=True)  # Создаем папку, если она еще не существует
+    os.makedirs(results_dir, exist_ok=True)  
     file_path = os.path.join(results_dir, file_name)
     with open(file_path, 'w') as f:
         json.dump(data, f, indent=4)
@@ -52,18 +53,18 @@ if __name__ == "__main__":
     passwd = config.get('General', 'passwd')
     user_access_level = config.getint('General', 'user_access_level')
     output_format = config.get('General', 'format', fallback='json')
-    results_dir = config.get('General', 'results_dir', fallback='results')  # Читаем из конфига
+    results_dir = config.get('General', 'results_dir', fallback='results')  
 
-    all_results = []  # Список для хранения результатов всех опросов
+    all_results = []  
 
     for section in config.sections():
         if 'Transformer' in section:
             host = config.get(section, 'host')
             port = config.getint(section, 'port')
-            meters = config.get(section, 'meters').split(', ')
+            meters = [int(meter.strip()) for meter in config.get(section, 'meters').split(',')]
             for serial in meters:
                 result = poll_meter(host, port, serial, user, passwd, user_access_level)
                 all_results.append(result)
-    
+
     if output_format == 'json':
         save_results_to_file(all_results, results_dir)
