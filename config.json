@@ -1,0 +1,9 @@
+[Settings]
+proto = m236
+serial = 123456
+host = 192.168.1.1
+port = 50
+user = admin
+passwd = secret
+format = json
+array_number = 11
