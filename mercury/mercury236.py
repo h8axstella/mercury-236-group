@@ -6,6 +6,7 @@ from struct import pack, unpack
 from typing import Union, Sequence
 from .utils import digitize
 
+
 def read_vap(s, address_mercury, cmd=0x08):
     ''' Read Voltage (V), Amperage (A), Power (kW/h)
 
@@ -19,28 +20,27 @@ def read_vap(s, address_mercury, cmd=0x08):
     result = {}
 
     for r in headers:
-        result[r] = digitize( bytes([data[0], data[2], data[1]]), 16 ) / 100
+        result[r] = digitize(bytes([data[0], data[2], data[1]]), 16) / 100
         data = data[3:]
 
     data = send_tcp_command(s, address_mercury, cmd, 0x16, 0x00)
     headers = ['Psum', 'P_F1', 'P_F2', 'P_F3']
 
     for r in headers:
-        result[r] = digitize( bytes([data[2], data[1]]), 16 )/100
+        result[r] = digitize(bytes([data[2], data[1]]), 16) / 100
         data = data[3:]
 
     data = send_tcp_command(s, address_mercury, cmd, 0x16, 0x21)
 
     headers = ['A_F1', 'A_F2', 'A_F3']
     for r in headers:
-        result[r] = digitize( bytes([data[0], data[2], data[1]]), 16 )/1000
+        result[r] = digitize(bytes([data[0], data[2], data[1]]), 16) / 1000
         data = data[3:]
 
     return result
 
 
-
-def read_energy(s, address_mercury, cmd=0x05, param=0x00, tarif=0x00, *args):
+def read_energy(s, address_mercury, cmd=0x05, param=0x00, tarif=0x00):
     ''' 
     cmd      0x05 - чтение активной и реактивной энергии
     param    0x00 - от сброса (0x60 - пофазные значения учтенной активной энергии прямого направления)
@@ -50,80 +50,77 @@ def read_energy(s, address_mercury, cmd=0x05, param=0x00, tarif=0x00, *args):
     data = send_tcp_command(s, address_mercury, cmd, param, tarif)
 
     headers = ['A+_F1', 'A+_F2', 'A+_F3'] if param == 0x60 else ['A+', 'A-', 'R+', 'R-']
-    suffix = "sum" if tarif == 0x0 else '_T'+str(tarif)
+    suffix = "sum" if tarif == 0x0 else '_T' + str(tarif)
 
     result = {}
     for r in headers:
         if len(data) < 4:
-            result[r+suffix] = 0
+            result[r + suffix] = 0
         else:
-            result[r+suffix] = digitize( bytes([data[1], data[0], data[3], data[2]]), 16 )/1000
+            result[r + suffix] = digitize(bytes([data[1], data[0], data[3], data[2]]), 16) / 1000
             data = data[4:]
 
-    if 'A-'+suffix in result:
-        result['A-'+suffix] = 0
+    if 'A-' + suffix in result:
+        result['A-' + suffix] = 0
 
     return result
 
 
-def read_energy_sum_act_react(s, address_mercury, cmd=0x05, param=0x00):
-    result =  read_energy(s, address_mercury, cmd=0x05, param=0x00, tarif=0x0)
+def read_energy_sum_act_react(s, address_mercury, cmd=0x05, param=0x00, tarif=0x0):
+    result = read_energy(s, address_mercury, cmd=cmd, param=param, tarif=tarif)
     return result
 
 
 def read_energy_tarif_act_react(s, address_mercury, cmd=0x05, param=0x00):
     result = {}
-    for i in range(1,5):
-        r = read_energy(s, address_mercury, cmd=0x05, param=0x00, tarif=i)
+    for i in range(1, 5):
+        r = read_energy(s, address_mercury, cmd=cmd, param=param, tarif=i)
         result = {**result, **r}
 
     return result
 
 
 def read_energy_sum_by_phases(s, address_mercury, cmd=0x05, param=0x60, tarif=0x0):
-    result =  read_energy(s, address_mercury, cmd=0x05, param=0x60, tarif=0x0)
+    result = read_energy(s, address_mercury, cmd=cmd, param=param, tarif=tarif)
     return result
 
 
-def read_energy_tarif_by_phases(s, address_mercury, cmd=0x05, param=0x60, tarif=0x0):
+def read_energy_tarif_by_phases(s, address_mercury, cmd=0x05, param=0x60):
     result = {}
-    for i in range(1,5):
-        r = read_energy(s, address_mercury, cmd=0x05, param=0x60, tarif=i)
+    for i in range(1, 5):
+        r = read_energy(s, address_mercury, cmd=cmd, param=param, tarif=i)
         result = {**result, **r}
 
     return result
 
 
-
-
 def read_freq(s, address_mercury, cmd=0x08):
     data = send_tcp_command(s, address_mercury, cmd, 0x16, 0x40)
-    return digitize( bytes([data[0], data[2], data[1]]), 16 )/100
-
-
+    return digitize(bytes([data[0], data[2], data[1]]), 16) / 100
 
 
 def check_connect(s, address_mercury, cmd=0x00, *args):
-    #print (f"check_connect....")
+    # print (f"check_connect....")
     data = send_tcp_command(s, address_mercury, cmd, *args)
-    #print (pretty_hex(data))
+    # print (pretty_hex(data))
+
 
 def open_channel(s, address_mercury, user=0x1, passwd="1111111", cmd=0x01, *args):
-    #print (f"open channel...")
+    # print (f"open channel...")
     # 0x01 - open channel, (0x01 - user mode | 0x02 - admin mode)
     data = send_tcp_command(s, address_mercury, 0x01, user, passwd=passwd)
-    #print (pretty_hex(data))
+    # print (pretty_hex(data))
+
 
 def close_channel(s, address_mercury, cmd=0x02, *args):
-    #print (f"close channel...")
+    # print (f"close channel...")
     # 0x02 - close channel
     data = send_tcp_command(s, address_mercury, 0x02)
-    #print (pretty_hex(data))
-
-
+    # print (pretty_hex(data))
 
 
 ADDRESS_FMT = '!B'  # unsigned char (integer 1 byte in network order)
+
 
 def read_data_from_socket(s):
     data = ''
@@ -138,14 +135,14 @@ def read_data_from_socket(s):
     s.settimeout(None)
     return buffer
 
-def send_tcp_command(s, address_mercury, command, *params, **kwargs):
 
-    message = pack_msg(address_mercury, command, *params, passwd=kwargs.get('passwd',''), crc=kwargs.get('crc', True))
+def send_tcp_command(s, address_mercury, command, *params, **kwargs):
+    message = pack_msg(address_mercury, command, *params, passwd=kwargs.get('passwd', ''), crc=kwargs.get('crc', True))
     s.sendall(message)
 
     answer = read_data_from_socket(s)
-    #answer_lines = answer.split('\r\n')
-    #answer = ''.join(answer_lines)
+    # answer_lines = answer.split('\r\n')
+    # answer = ''.join(answer_lines)
 
     if len(answer) > 1:
         received_address, received_data = unpack_msg(answer)
@@ -187,13 +184,13 @@ def pack_msg(address: Union[int, bytes], *args: Sequence[int], **kwargs) -> byte
     else:
         raise TypeError('address must be an integer or bytes')
 
-    #print (f"args: {args}")
+    # print (f"args: {args}")
     params = bytes(args)
 
-    #print (f"address: {address}, params: {params}")
+    # print (f"address: {address}, params: {params}")
 
     if kwargs.get('passwd'):
-        passwd = bytes([ int(c) for c in kwargs.get('passwd') ])
+        passwd = bytes([int(c) for c in kwargs.get('passwd')])
         msg = (address + params + passwd).decode('latin1')
     else:
         msg = (address + params).decode('latin1')
