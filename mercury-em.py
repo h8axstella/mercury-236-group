@@ -17,8 +17,7 @@ import mercury.mercury236 as mercury236
 def read_config(config_file='config.ini'):
     config = configparser.ConfigParser()
     config.read(config_file)
-
-    args = {
+    return {
         'proto': config.get('Settings', 'proto', fallback='m206'),
         'serial': config.getint('Settings', 'serial', fallback=0),
         'host': config.get('Settings', 'host', fallback='0'),
@@ -26,9 +25,9 @@ def read_config(config_file='config.ini'):
         'user': config.get('Settings', 'user', fallback='user'),
         'passwd': config.get('Settings', 'passwd', fallback=''),
         'format': config.get('Settings', 'format', fallback='json'),
-        # Удалите строку 'array_number', если она уже обрабатывается в другом месте
+        'array_number': config.getint('Settings', 'array_number', fallback=0x00)
     }
-    return args
+
     
 def parse_cmd_line_args():
     parser = argparse.ArgumentParser(description="Mercury energy meter data receiver",
@@ -87,7 +86,7 @@ def print_output(arr, output_format):
 
 
 if __name__ == "__main__":
-    args = parse_cmd_line_args()
+    args = read_config()
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect((args.host, args.port))
